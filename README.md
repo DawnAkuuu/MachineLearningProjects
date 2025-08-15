@@ -1,5 +1,5 @@
-# MachineLearningTime
-A Machine Learning project by me.
+# MachineLearningProjects
+Machine Learning projects by me.
 
 Ive come to take this as a place where I can show off any neural network practice projects ive been doing.
 
