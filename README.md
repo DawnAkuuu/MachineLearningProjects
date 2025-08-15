@@ -11,7 +11,7 @@ https://www.youtube.com/watch?v=pauPCy_s0Ok
 
 These were very informative on how to make NNs and they dive deep into the mathematics and the code behind neural networks.
 
-> one day ill get to this lol.
+> ~~one day ill get to this lol.~~
 >
 > edit: I got to it :D
 > 
