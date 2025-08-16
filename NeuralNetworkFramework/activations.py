@@ -35,3 +35,13 @@ class ReLU(Activation):
             return x > 0
     
         super().__init__(relu, relu_prime)
+
+class Softmax(Layer):
+    def forward(self, input):
+        tmp = np.exp(input)
+        self.output = tmp / np.sum(tmp)
+        return self.output
+
+    def backward(self, output_gradient, learning_rate):
+        n = np.size(self.output)
+        return np.dot((np.identity(n) - self.output.T) * self.output, output_gradient)

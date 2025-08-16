@@ -1,3 +1,4 @@
+from numba import jit
 import numpy as np
 from layer import Layer
 from scipy import signal

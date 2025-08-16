@@ -1,5 +1,5 @@
 # MNIST Dataset with predictions of 1 or 0 using CNN
-
+from numba import jit, cuda
 import numpy as np
 from keras.datasets import mnist
 from tensorflow.keras import utils
@@ -7,8 +7,8 @@ from tensorflow.keras import utils
 from dense import Dense
 from convolutions import Convolutional
 from reshape import Reshape
-from activations import Tanh, Sigmoid
-from losses import binary_cross_entropy, binary_cross_entropy_prime
+from activations import Softmax, Tanh, Sigmoid
+from losses import binary_cross_entropy, binary_cross_entropy_prime, cat_cross_entropy, cat_cross_entropy_prime
 
 def preprocess_data(x, y, limit):
     zero_index = np.where(y == 0)[0][:limit]
@@ -16,20 +16,32 @@ def preprocess_data(x, y, limit):
     all_indices = np.hstack((zero_index, one_index))
     all_indices = np.random.permutation(all_indices)
     x, y = x[all_indices], y[all_indices]
+
+    # indices = []
+    # for label in np.unique(y):
+    #     class_idx = np.where(y == label)[0][:limit]
+    #     indices.append(class_idx)
+    # all_indices = np.hstack(indices)
+
+    # all_indices = np.random.permutation(all_indices)
+    # x, y = x[all_indices], y[all_indices]
+
     x = x.reshape(len(x), 1, 28, 28)
     x = x.astype("float32") / 255
 
     # One hot encoding
-    y = utils.to_categorical(y)
-    y = y.reshape(len(y), 2, 1)
+    num_classes = len(np.unique(y))
+    y = utils.to_categorical(y, num_classes=num_classes)
+    y = y.reshape(len(y), num_classes, 1)
     return x, y
 
 # load MNIST from server, limit to 100 images per class since we're not training on GPU
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train, y_train = preprocess_data(x_train, y_train, 100)
-x_test, y_test = preprocess_data(x_test, y_test, 100)
+x_train, y_train = preprocess_data(x_train, y_train, 6000)
+x_test, y_test = preprocess_data(x_test, y_test, 4000)
 
 # Neural network
+
 
 network = [
     Convolutional((1, 28, 28), 3, 5),
@@ -62,12 +74,15 @@ for e in range(epochs):
             grad = layer.backward(grad, learning_rate)
     
     error /= len(x_train)
-    print(f"{e + 1}/{epochs}, error = {error}")
+    if e % 5 == 0:
+        print(f"{e}/{epochs}, error = {error}")
 
 
 # Test
 for x, y in zip(x_test, y_test):
     output = x
+    i = 0
     for layer in network:
         output = layer.forward(output)
-    print(f"pred: {np.argmax(output)}, true: {np.argmax(y)}")
+        if i % 100 == 0:
+             print(f"pred: {np.argmax(output)}, true: {np.argmax(y)}")
