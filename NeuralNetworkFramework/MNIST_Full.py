@@ -3,11 +3,12 @@ from numba import jit, cuda
 import numpy as np
 from keras.datasets import mnist
 from tensorflow.keras import utils
+import time
 
 from dense import Dense
-from convolutions_GPU import Convolutional
+from convolutions import Convolutional
 from reshape import Reshape
-from activations import Softmax, Tanh, Sigmoid
+from activations import ReLU, Softmax, Tanh, Sigmoid
 from losses import binary_cross_entropy, binary_cross_entropy_prime, cat_cross_entropy, cat_cross_entropy_prime, mse, mse_prime
 
 def preprocess_data(x, y, limit):
@@ -39,8 +40,8 @@ def preprocess_data(x, y, limit):
 
 # load MNIST from server, limit to 100 images per class since we're not training on GPU
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train, y_train = preprocess_data(x_train, y_train, 500)
-x_test, y_test = preprocess_data(x_test, y_test, 200)
+x_train, y_train = preprocess_data(x_train, y_train, 100)
+x_test, y_test = preprocess_data(x_test, y_test, 50)
 
 
 # Neural network
@@ -48,17 +49,16 @@ x_test, y_test = preprocess_data(x_test, y_test, 200)
 
 network = [
     Convolutional((1, 28, 28), 3, 32),
-    Sigmoid(),
-    Convolutional((32, 26, 26), 3, 64),
-    Reshape((64, 24, 24), (64 * 24 * 24, 1)),
-    Dense(64 * 24 * 24, 128),
-    Sigmoid(),
-    Dense(128, 10),
+    ReLU(),
+    Reshape((32, 26, 26), (32 * 26 * 26, 1)),
+    Dense(32 * 26 * 26, 64),
+    ReLU(),
+    Dense(64, 10),
     Softmax()
 ]
 
 epochs = 50
-learning_rate = 0.001
+learning_rate = 0.01
 
 # Train
 for e in range(epochs):
@@ -71,7 +71,10 @@ for e in range(epochs):
         # Forward pass
         output = x
         for layer in network:
+            # start = time.time()
             output = layer.forward(output)
+            # end = time.time()
+            # print(f"Layer {i} ({type(layer).__name__}): {(end-start)*1000:.2f}ms")
 
         # Calculate the error
         error += cat_cross_entropy(y, output)
@@ -89,8 +92,8 @@ for e in range(epochs):
             print(f'Clipping gradient:  {grad_norm: 2.f} --> 5.0')
             grad = grad * (5.0 / grad_norm)
 
-        if i % 10 == 0:
-            print(f"completed training: {i}")
+        # if i % 10 == 0:
+        #     print(f"completed training: {i}")
         
 
         
