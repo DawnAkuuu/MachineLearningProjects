@@ -7,7 +7,7 @@ class Dense(Layer):
     # input_size: size of the input
     # output_size: size of the output
     def __init__(self, input_size, output_size):
-        self.weights = np.random.randn(output_size, input_size) # Initialize the weights
+        self.weights = np.random.randn(output_size, input_size) * 0.01 # Initialize the weights
         self.bias = np.random.randn(output_size, 1) # Initialize the bias
     
     # Forward pass
