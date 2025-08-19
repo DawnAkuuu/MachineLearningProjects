@@ -38,7 +38,9 @@ class ReLU(Activation):
 
 class Softmax(Layer):
     def forward(self, input):
+        print(input)
         tmp = np.exp(input)
+        print(tmp)
         self.output = tmp / np.sum(tmp)
         return self.output
 
